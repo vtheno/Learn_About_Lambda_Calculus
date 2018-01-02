@@ -59,12 +59,12 @@ class Lambda(object):
             setattr(self,temp,makeSym(temp))
     def parse2AST(self,src):
         # (lambda a.a)b
-        id = AbstractAST(self.e,self.e)
+        id = AbstractAST(self.i,self.i)
         self_apply = AbstractAST(self.s,ApplyAST(self.s,self.s))
         apply      = AbstractAST(self.f,AbstractAST(self.a,ApplyAST(self.f,self.a)))
         #expression = ApplyAST(id,self.c)
-        #expression = ApplyAST(ApplyAST(apply,id),id)
         #expression = ApplyAST(self_apply,id)
+        expression = ApplyAST(ApplyAST(apply,id),id)
         return expression
     def eval(self,code):
         print 'eval:',code
@@ -108,21 +108,23 @@ class Lambda(object):
                                        node.function.arg,
                                        node.argument)
             else:
-                temp = self.eval(node.function)
+                temp = self.beta_reduction(node.function)#self.eval(node.function)
                 print 'appAST:',temp
                 print 'appAST:',node.function
                 if temp != node.function:
                     node.function = temp
                     return node
                 else:
-                    node.argument = self.eval(node.argument)
+                    node.argument = self.beta_reduction(node.argument)#self.eval(node.argument)
                     return node
     def AppAST(self,node):
         temp = self.beta_reduction(node)
+        print "step_0:",temp
         while self.isAppAST(temp):
             temp = self.beta_reduction(temp)
         else:
             return temp
+        #return self.beta_reduction(node)
 
 
 if __name__ == '__main__':
