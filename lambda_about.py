@@ -59,12 +59,12 @@ class Lambda(object):
             setattr(self,temp,makeSym(temp))
     def parse2AST(self,src):
         # (lambda a.a)b
-        lambdaa = AbstractAST(self.d,self.d)
-        #lambdab = AbstractAST(self.b,lambdaa)
-        # lambdab ::= lambda b -> lambda a -> b
-        expression = ApplyAST(ApplyAST(lambdaa,AbstractAST(self.a,self.a)),self.b)
-        # expression <=> ( ( (lambda a.b) (lambda a.a) ) b) => b
-        #expression = ApplyAST(lambdab,self.c)
+        id = AbstractAST(self.e,self.e)
+        self_apply = AbstractAST(self.s,ApplyAST(self.s,self.s))
+        apply      = AbstractAST(self.f,AbstractAST(self.a,ApplyAST(self.f,self.a)))
+        #expression = ApplyAST(id,self.c)
+        #expression = ApplyAST(ApplyAST(apply,id),id)
+        #expression = ApplyAST(self_apply,id)
         return expression
     def eval(self,code):
         print 'eval:',code
@@ -98,22 +98,31 @@ class Lambda(object):
             node.body = self.substitute(node.body,x,v)
         return node
     def beta_reduction(self,node):
-        if self.isAbsAST(node.function):
-            return self.substitute(node.function.body,
-                                   node.function.arg,
-                                   node.argument)
-        else:
-            temp = self.eval(node.function)
-            print 'appAST:',temp
-            print 'appAST:',node.function
-            if temp != node.function:
-                node.function = temp
-                return node
+        if self.isSymbol(node):
+            return node
+        elif self.isAbsAST(node):
+            return node
+        elif self.isAppAST(node):
+            if self.isAbsAST(node.function):
+                return self.substitute(node.function.body,
+                                       node.function.arg,
+                                       node.argument)
             else:
-                node.argument = self.eval(node.argument)
-                return node
+                temp = self.eval(node.function)
+                print 'appAST:',temp
+                print 'appAST:',node.function
+                if temp != node.function:
+                    node.function = temp
+                    return node
+                else:
+                    node.argument = self.eval(node.argument)
+                    return node
     def AppAST(self,node):
-        return self.beta_reduction(node)
+        temp = self.beta_reduction(node)
+        while self.isAppAST(temp):
+            temp = self.beta_reduction(temp)
+        else:
+            return temp
 
 
 if __name__ == '__main__':
