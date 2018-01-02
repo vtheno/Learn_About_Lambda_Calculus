@@ -1,0 +1,93 @@
+#coding=utf-8
+class Match(object):
+    # useage: Match(exp) <= [
+    #                        [symbol?,lambda:xxx],]
+    def __repr__(self):
+        return "Case({})".format(self.expression)
+    def __init__(self,expression):
+        self.expression = expression
+    def __le__(self,tup):
+        #print tup
+        for current,then in tup:
+            #if self.expression == current:
+            if current(self.expression):
+                #return then(current)
+                return then()
+
+class AST(object):
+    def __repr__(self):
+        return "AST({})".format(self.name)
+    def __init__(self,NodeName):
+        self.name = NodeName
+
+class AbstractAST(AST):
+    name = "Lambda"
+    def __repr__(self):
+        return self.name+"({},{})".format(self.arg,self.body)
+    def __init__(self,arg,body):
+        self.arg = arg
+        self.body = body
+    def setBody(self,body):
+        self.body = body
+
+class SymbolAST(AST):
+    name = "Symbol"#"Variable"
+    def __repr__(self):
+        return self.name+"({})".format(self.symbol)
+    def __init__(self,VarName):
+        self.symbol = VarName
+    def setSym(self,symbol):
+        self.symbol = symbol
+class ApplyAST(AST):
+    name = "Apply"
+    def __repr__(self):
+        return self.name+"({},{})".format(self.function,self.argument)
+    def __init__(self,function,argument):
+        # <name> <=> <function>
+        # <args> <=> <argument>
+        self.function = function
+        self.argument = argument
+
+def makeSym(char):
+    return SymbolAST(char)
+
+#symbolTable = {}
+
+class Lambda(object):
+    def __init__(self):
+        for temp in 'abcdefghizklmnopqrstuvwxyz':
+            setattr(self,temp,makeSym(temp))
+    def parse2AST(self,src):
+        # (lambda a.a)b
+        lambdaa = AbstractAST(self.a,self.a)
+        lambdab = AbstractAST(self.b,lambdaa)
+        # lambdab ::= lambda b -> lambda a -> b
+        #expression = ApplyAST(ApplyAST(lambdaa,AbstractAST(self.a,self.a)),self.b)
+        expression = ApplyAST(lambdab,self.c)
+        return expression
+    def eval(self,code):
+        return Match(code) <= [
+            (self.isSymbol,lambda:self.Symbol(code) ),
+            (self.isAbsAST,lambda:self.AbsAST(code) ),
+            (self.isAppAST,lambda:self.AppAST(code) ),
+            ]
+    def isSymbol(self,node):
+        return isinstance(node,SymbolAST)
+    def Symbol(self,node):
+        return node
+    def isAbsAST(self,node):
+        return node
+    def AbsAST(self,node):
+        return AbstractAST(node.arg,self.eval(node.body))
+    def isAppAST(self,node):
+        return isinstance(node,ApplyAST)
+    def AppAST(self,node):
+        left = self.eval(node.function)
+        righ = self.eval(node.argument)
+        return # circual
+if __name__ == '__main__':
+    l = Lambda()
+    temp = l.parse2AST(233)
+    print 'result:',l.eval(temp)
+    print temp
+    
