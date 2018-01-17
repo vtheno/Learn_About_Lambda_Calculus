@@ -111,6 +111,7 @@ class Lambda(object):
                 temp = self.beta_reduction(node.function)#self.eval(node.function)
                 print 'appAST:',temp
                 print 'appAST:',node.function
+                print 'not eq?:',temp != node.function
                 if temp != node.function:
                     node.function = temp
                     return node
@@ -125,7 +126,6 @@ class Lambda(object):
         else:
             return temp
         #return self.beta_reduction(node)
-
 
 if __name__ == '__main__':
     l = Lambda()
